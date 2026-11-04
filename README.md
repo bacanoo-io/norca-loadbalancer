@@ -99,7 +99,11 @@ start; the provider never parses its own settings.
   operator reads to send it. A class needs a token unless `no_auth` is set
   (trusted network only).
 - The operator accepts `https` endpoints; `http` only with its
-  `-class-allow-http` flag.
+  `-class-allow-http` flag. A provider with a certificate of a private CA (for
+  example the CA of the cluster) is trusted by the operator with
+  `-class-ca-file <ca.pem>`; the certificate must be valid for the host or IP
+  address of the registered endpoint, and `tls` in the file gives the provider
+  its certificate and key.
 - **`${NAME}` and `${NAME:-default}`** in any string of the file are replaced
   with the environment of the process (an unset variable without a default is
   an error), so a file can be written for a job whose address and port are only
