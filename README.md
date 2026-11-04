@@ -122,7 +122,31 @@ norca var put lb-provider/nginx-edge/token token="$LB_NGINX_EDGE_TOKEN"
 lbprovider -config classes.json
 ```
 
-As a Norca job, the provider registers on the task API socket with its workload
+### As a container (the usual way)
+
+A provider mostly runs as a container: the `Dockerfile` builds a `FROM scratch`
+image of the static binary, and the job runs it in bridge mode. The container
+opens its own ports (Norca publishes them) and reaches the Norca API **over the
+network**, with no task API socket:
+
+- the API address is a server (`NORCA_ADDR=https://<server>:4646`); use the
+  address of a node other than the one the container runs on, unless the
+  firewall of that node lets the bridge in;
+- the CA of the cluster verifies it (`NORCA_CACERT`), and `identity { env =
+  true }` provides the token (`NORCA_TOKEN`, the workload identity), with the
+  policy of the job: `read`, `write` and `write-status` on
+  `norca.io/LoadBalancerClass`;
+- the provider listens on the port inside the container (`NORCA_PORT_api`) and
+  registers the **host** address and port (`NORCA_HOST_IP_api`,
+  `NORCA_HOST_PORT_api`), which differ from what it listens on.
+
+The job of the lab case `loadbalancer-docker-net` (`norca-lab`,
+`cases\loadbalancer\jobs\provider-docker-net.norca.hcl`) is a complete example,
+and `provider-docker.norca.hcl` next to it is the same with the task API socket.
+
+### On the task API socket
+
+As a Norca job, the provider can also register on the task API socket with its workload
 identity (`NORCA_ADDR=unix://${NORCA_SECRETS_DIR}/api.sock`, `identity { env =
 true }`; the `unix://` address is supported). The job of the lab case
 (`norca-lab`, `cases\loadbalancer\jobs\provider.norca.hcl`) is a complete
