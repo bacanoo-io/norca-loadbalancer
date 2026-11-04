@@ -1,0 +1,38 @@
+{
+  "listen": ":8443",
+  "tls": { "cert": "/etc/norca-loadbalancer/tls.crt", "key": "/etc/norca-loadbalancer/tls.key" },
+  "advertise_url": "https://lb-provider.service.norca:8443",
+  "heartbeat_interval": "30s",
+
+  "classes": [
+    {
+      "class": "nginx-edge",
+      "type": "nginx",
+      "token": "env:LB_NGINX_EDGE_TOKEN",
+      "token_variable": "lb-provider/nginx-edge/token",
+      "params": {
+        "config_dir": "/etc/nginx/norca-lb",
+        "advertise_address": "203.0.113.5",
+        "ports": "1024-65535"
+      }
+    },
+    {
+      "class": "nginx-internal",
+      "type": "nginx",
+      "token": "env:LB_NGINX_INTERNAL_TOKEN",
+      "token_variable": "lb-provider/nginx-internal/token",
+      "params": {
+        "config_dir": "/etc/nginx/norca-lb-internal",
+        "advertise_address": "10.1.0.5",
+        "listen_address": "10.1.0.5",
+        "internal_listen_address": "10.1.0.5"
+      }
+    },
+    {
+      "class": "mock",
+      "type": "mock",
+      "no_auth": true,
+      "params": { "address": "192.0.2.10" }
+    }
+  ]
+}
