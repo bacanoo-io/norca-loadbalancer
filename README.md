@@ -30,15 +30,21 @@ Norca documentation: operator framework).
 ## Layout
 
 ```
-provider/            the interface, the type registry, the parameter model
-providers/mock/      type "mock": load balancers in memory, for trials and tests
-providers/nginx/     type "nginx": TCP load balancers as nginx stream servers
-providers/tcpproxy/  type "tcpproxy": TCP load balancers inside the process (round robin, failover)
-providers/all/       blank imports that link the implementations into the binary
-server/              the HTTP API the operator calls (many classes, one process)
-registrar/           the LoadBalancerClass objects and their heartbeat
-config/              the configuration file, and building the classes from it
-cmd/lbprovider/      the program
+pkg/provider/                    the interface, the type registry, the parameter model
+internal/providers/aws/          type "aws": AWS Network Load Balancers (ELBv2)
+internal/providers/digitalocean/ type "digitalocean": DigitalOcean Load Balancers
+internal/providers/gcp/          type "gcp": Google Cloud regional TCP passthrough Network Load Balancers
+internal/providers/hcloud/       type "hcloud": Hetzner Cloud Load Balancers
+internal/providers/mock/         type "mock": load balancers in memory, for trials and tests
+internal/providers/nginx/        type "nginx": TCP load balancers as nginx stream servers
+internal/providers/scaleway/     type "scaleway": Scaleway Load Balancers
+internal/providers/tcpproxy/     type "tcpproxy": TCP load balancers inside the process (round robin, failover)
+internal/providers/vultr/        type "vultr": Vultr Load Balancers
+internal/providers/all/          blank imports that link the implementations into the binary
+internal/server/                 the HTTP API the operator calls (many classes, one process)
+internal/registrar/              the LoadBalancerClass objects and their heartbeat
+internal/config/                 the configuration file, and building the classes from it
+cmd/lbprovider/                  the program
 ```
 
 ## Types, classes and parameters
@@ -177,7 +183,7 @@ published parameters; tokens are never listed).
 
 ## Adding an implementation
 
-1. Create `providers/<id>/` with a package that implements `provider.Provider`.
+1. Create `internal/providers/<id>/` with a package that implements `provider.Provider` (`github.com/bacanoo-io/norca-loadbalancer/pkg/provider`).
 2. Declare the parameters and register the type in `init()`:
 
    ```go
@@ -196,7 +202,7 @@ published parameters; tokens are never listed).
    func New(cfg provider.Config) (provider.Provider, error) { /* cfg.Values.String("token") ... */ }
    ```
 
-3. Add a blank import to `providers/all/all.go`.
+3. Add a blank import to `internal/providers/all/all.go`.
 
 `Ensure` receives the whole desired state each time (service, port, targets,
 the effective parameters) and must be idempotent; `Delete` must accept what does
@@ -225,8 +231,32 @@ by a tag, so it survives a restart.
   restarted provider continues where it was. A configuration that nginx rejects
   is rolled back; two load balancers cannot take the same port.
 
-A cloud implementation (Hetzner, Scaleway, AWS, Google) is not part of this
-example; it is a new package like `nginx`.
+- **hcloud**: provisions Hetzner Cloud Load Balancers via the Hetzner Cloud REST
+  API v1. Supports public and private network (`network_id`) load balancers, and
+  dynamic `type` (`lb11`, `lb21`, `lb31`) and `algorithm` (`round_robin`,
+  `least_connections`).
+- **scaleway**: provisions Scaleway Load Balancers via the Scaleway Zoned LB API
+  v1. Supports flexible IPs, Private Networks (`private_network_id`), and
+  dynamic commercial `type` (`LB-S`, `LB-GP-M`, ...) and `algorithm`
+  (`roundrobin`, `leastconn`, `first`).
+- **aws**: provisions AWS Network Load Balancers (`Type=network`), IP target
+  groups and TCP listeners via the Elastic Load Balancing v2 API signed with
+  AWS Signature Version 4. Supports `internet-facing` and `internal` schemes and
+  dynamic `cross_zone` load balancing.
+- **gcp**: provisions Google Cloud regional TCP passthrough Network Load
+  Balancers (`regionHealthChecks`, `regionNetworkEndpointGroups`,
+  `regionBackendServices` and `forwardingRules`) via Compute Engine REST API v1,
+  with `EXTERNAL` and `INTERNAL` schemes and dynamic `network_tier` (`PREMIUM`,
+  `STANDARD`).
+- **digitalocean**: provisions DigitalOcean Load Balancers via the DigitalOcean
+  REST API v2 (`/v2/load_balancers`, resolving target IPs via `/v2/droplets`),
+  supporting VPC internal (`REGIONAL_NETWORK`) load balancers and dynamic
+  `size_unit`, `algorithm` (`round_robin`, `least_connections`) and
+  `enable_proxy_protocol`.
+- **vultr**: provisions Vultr Load Balancers via the Vultr REST API v2
+  (`/v2/load-balancers`, resolving target IPs via `/v2/instances`), supporting
+  VPC attachment and dynamic `algorithm` (`roundrobin`, `leastconn`) and
+  `proxy_protocol`.
 
 ## Tests
 

@@ -1,0 +1,8 @@
+# Build output.
+bin/
+coverage.out
+
+# Binaries built in the repository root.
+/lbprovider
+/lbprovider.exe
+

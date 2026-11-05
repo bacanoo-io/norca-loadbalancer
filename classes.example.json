@@ -29,6 +29,50 @@
       }
     },
     {
+      "class": "hcloud-eu",
+      "type": "hcloud",
+      "token": "env:LB_HCLOUD_CLASS_TOKEN",
+      "token_variable": "lb-provider/hcloud-eu/token",
+      "params": {
+        "token": "env:HCLOUD_TOKEN",
+        "location": "fsn1",
+        "type": "lb11"
+      }
+    },
+    {
+      "class": "scaleway-par",
+      "type": "scaleway",
+      "token": "env:LB_SCW_CLASS_TOKEN",
+      "token_variable": "lb-provider/scaleway-par/token",
+      "params": {
+        "secret_key": "env:SCW_SECRET_KEY",
+        "project_id": "00000000-0000-0000-0000-000000000000",
+        "zone": "fr-par-1",
+        "type": "LB-S"
+      }
+    },
+    {
+      "class": "do-fra",
+      "type": "digitalocean",
+      "token": "env:LB_DO_CLASS_TOKEN",
+      "token_variable": "lb-provider/do-fra/token",
+      "params": {
+        "token": "env:DIGITALOCEAN_TOKEN",
+        "region": "fra1",
+        "size_unit": 1
+      }
+    },
+    {
+      "class": "vultr-fra",
+      "type": "vultr",
+      "token": "env:LB_VULTR_CLASS_TOKEN",
+      "token_variable": "lb-provider/vultr-fra/token",
+      "params": {
+        "api_key": "env:VULTR_API_KEY",
+        "region": "fra"
+      }
+    },
+    {
       "class": "mock",
       "type": "mock",
       "no_auth": true,
